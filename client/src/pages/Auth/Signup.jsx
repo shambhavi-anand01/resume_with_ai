@@ -31,7 +31,7 @@ function Signup() {
             return handleError('name , email and password required')
         }
         try{
-            const url = "http://localhost:5000/api/auth/signup";
+            const url = "https://resume-with-ai.onrender.com/api/auth/signup";
             const response = await fetch(url,{
                 method:"POST",
                 headers:{
