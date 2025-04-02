@@ -17,10 +17,10 @@ function Signup() {
 
     const handleChange = (e)=>{
         const {name, value} = e.target;
-        console.log (name,value);
-        const copySignUpInfo = { ...signupInfo };
-        copySignUpInfo[name] = value;
-        setSignUpInfo(copySignUpInfo);
+        // console.log (name,value);
+        // const copySignUpInfo = { ...signupInfo };
+        // copySignUpInfo[name] = value;
+        setSignUpInfo((prev)=>({...prev, [name]: value}));
     }
    
 
@@ -28,7 +28,7 @@ function Signup() {
         e.preventDefault();
         const {name, email, password} =  signupInfo;
         if(!name || !email || !password){
-            return handleError('name , email and password required')
+            return handleError('Username , email and password required')
         }
         try{
             const url = "https://resume-with-ai.onrender.com/api/auth/signup";
@@ -39,25 +39,18 @@ function Signup() {
                 },
                 body: JSON.stringify(signupInfo)
             });
+            // const result = await response.json();
             const result = await response.json();
-            const { success, message,  error } = result;
-            if(success){
-                handleSuccess(message);
-                setTimeout(()=>{
-                    navigate('/login')
-                },1000);
-                }else if(error){
-                    const details = error?.details[0]
-                    handleError(details.message);
-                }else if(!success){
-                    handleError(message);
-                }
-            console.log(result);
-        }catch(err) {
-            handleError(err);
+            if (result.success) {
+                handleSuccess(result.message);
+                setTimeout(() => navigate('/login'), 1000);
+            } else {
+                handleError(result.message || "Signup failed");
+            }
+        } catch (err) {
+            handleError("Network error: Unable to connect to server");
         }
-    }
-
+    };
   return (
     <div className="Top-container">
       <div className="Signup-container">

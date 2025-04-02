@@ -17,7 +17,7 @@ const googleSignIn = async (req, res) => {
         if (!user) {
             // If user doesn't exist, create a new one
             const generatedPassword = Math.random().toString(36).slice(-8);
-            const hashedPassword = await hashPassword(generatedPassword);
+            const hashedPassword = await bcrypt.hash(generatedPassword, 10); ;
 
             user = new User({
                 username: req.body.username.split(" ").join("").toLowerCase(),
@@ -50,27 +50,71 @@ const googleSignIn = async (req, res) => {
 };
 
 // Traditional Signup
+// const signup = async (req, res) => {
+//     console.log("received", req.body);
+//     try {
+//         const { username, email, password } = req.body;
+//         const user = await User.findOne({ email });
+//         if (user) {
+//             return res.status(409).json({ message: "User already exists with that email", success: false });
+//         }
+
+//         const hashedPassword = await bcrypt.hash(password, 10);
+//         const newUser = new User({
+//             name,
+//             email,
+//             password: hashedPassword
+//         });
+
+//         await newUser.save();
+//         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+//         res.status(201).json({ message: "User created successfully", success: true, token,user: { id: newUser._id, name: newUser.name, email: newUser.email }  });
+//     } catch (error) {
+//         console.error("Signup Error:", error);
+//         res.status(500).json({ message: "Internal server error", success: false });
+//     }
+// };
+
+
+
 const signup = async (req, res) => {
+    console.log("Received:", req.body);
     try {
         const { name, email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (user) {
-            return res.status(409).json({ message: "User already exists with that email", success: false });
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: "All fields are required", success: false });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ message: "User already exists", success: false });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({
             name,
+            username: name.toLowerCase().replace(/\s+/g, ''), // Changed from 'name' to 'username'
             email,
             password: hashedPassword
         });
 
         await newUser.save();
-        res.status(201).json({ message: "User created successfully", success: true });
+
+        const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+        res.status(201).json({
+            message: "User created successfully",
+            success: true,
+            token,
+            user: { id: newUser._id, name: newUser.name, email: newUser.email }
+        });
     } catch (error) {
+        console.error("Signup Error:", error);
         res.status(500).json({ message: "Internal server error", success: false });
     }
 };
+
 
 //chat
 const chat = async (req, res) => {
@@ -100,6 +144,9 @@ module.exports = { chat };
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: "All fields are required", success: false });
+        }
         const user = await User.findOne({ email });
         const errorMsg = "Auth failed, email or password is wrong";
 

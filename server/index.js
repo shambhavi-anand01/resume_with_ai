@@ -8,6 +8,7 @@ const authRoutes = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route");
 const resumeRoutes = require("./routes/resume.route");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+// const helmet=require('helmet');
 
 const app = express();
 
@@ -23,7 +24,15 @@ const model = generativeAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:5173", "https://resume-with-ai.vercel.app",
+    "https://resume-with-ai-shambhavi-anands-projects.vercel.app", 
+    "https://resume-with-ai-git-master-shambhavi-anands-projects.vercel.app"], // Adjust if your frontend runs on a different port
+    credentials: true
+}));
+// app.use(helmet({
+//     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+// }));
 app.use(bodyParser.json());
 
 // Routes

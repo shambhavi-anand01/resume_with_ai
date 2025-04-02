@@ -41,7 +41,7 @@ function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(loginInfo),
+        body: JSON.stringify({email, password}),
       });
       const result = await response.json();
       console.log(result);
