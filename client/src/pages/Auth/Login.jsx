@@ -1,76 +1,72 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify"
-import SignIn from "./SignInWithGoogle";
+import { ToastContainer, toast } from "react-toastify";
+import SignIn from "./SignInWithGoogle"; // Google sign-in component
 import "react-toastify/dist/ReactToastify.css";
-import  "../../styles/Login.css";
-import { handleError, handleSuccess } from "../../utils";
-
+import "../../styles/Login.css";
+import { handleError, handleSuccess } from "../../utils"; // Custom toast messages
 
 import { useDispatch } from "react-redux";
-import { signInStart, signInSuccess, signInFailure } from "../../redux/userSlice";
-
+import { signInStart, signInSuccess, signInFailure } from "../../redux/userSlice"; // Redux actions
 
 function Login() {
+  // State to store email and password input
   const [loginInfo, setLoginInfo] = useState({
     email: "",
     password: "",
   });
-  const dispatch=useDispatch();
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Update loginInfo state when user types into input fields
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(name, value);
     const copyLoginInfo = { ...loginInfo };
     copyLoginInfo[name] = value;
     setLoginInfo(copyLoginInfo);
   };
 
+  // Handle login form submission
   const handleLogin = async (e) => {
     e.preventDefault();
     const { email, password } = loginInfo;
-    // if (!email || !password) {
-    //   return handleError("email and password are required");
-    // }
+
     try {
-      dispatch(signInStart());
+      dispatch(signInStart()); // Start loading state in Redux
       const url = "https://resume-with-ai.onrender.com/api/auth/login";
+
+      // Send POST request to backend with login credentials
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({email, password}),
+        body: JSON.stringify({ email, password }),
       });
+
       const result = await response.json();
-      console.log(result);
       const { success, message, jwtToken, name, error } = result;
+
       if (success) {
-        handleSuccess(message);
-        localStorage.setItem("token", jwtToken);
-        localStorage.setItem("loggedInUser", name);
-        dispatch(signInSuccess({name, jwtToken}))
+        // If login is successful
+        handleSuccess(message); // Show success toast
+        localStorage.setItem("token", jwtToken); // Save token to local storage
+        localStorage.setItem("loggedInUser", name); // Save username
+        dispatch(signInSuccess({ name, jwtToken })); // Update Redux store
+
+        // Redirect to homepage after a short delay
         setTimeout(() => {
           navigate("/");
         }, 1000);
       } else {
+        // If login fails
         dispatch(signInFailure(message || "Login failed"));
         handleError(message || "Login failed");
       }
-      //  else if (error) {
-      //   const details = error?.details[0].message;
-      //   handleError(details);
-      // }
-      //  else if (!success) {
-      //   handleError(message);
-      // }
-      // console.log(result);
-    } 
-    
-    
-    
-    catch (err) {
+
+    } catch (err) {
+      // Catch any errors from the request
       dispatch(signInFailure(err.message));
       handleError(err);
     }
@@ -80,6 +76,8 @@ function Login() {
     <div className="Top-container">
       <div className="Login-container">
         <h1>Login</h1>
+
+        {/* Login Form */}
         <form onSubmit={handleLogin}>
           <div>
             <label htmlFor="email">Email</label>
@@ -101,13 +99,21 @@ function Login() {
               value={loginInfo.password}
             />
           </div>
+
           <button type="submit">Login</button>
+
           <span className="option">or</span>
-          <SignIn/>
+
+          {/* Google Sign-In Component */}
+          <SignIn />
+
+          {/* Link to Signup page */}
           <span>
-            Does't have an account ?<Link to="/signup">Signup</Link>
+            Doesn't have an account? <Link to="/signup">Signup</Link>
           </span>
         </form>
+
+        {/* Toast container for success/error messages */}
         <ToastContainer />
       </div>
     </div>
